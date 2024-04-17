@@ -1,7 +1,9 @@
 from aiogram import Router, types, F
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import default_state
 from FsmMachine import state_machines
-from filters import filters_state_load_file
+from filters import filters_state
 from keyboards import state_search_keyboards
 from assist_func import json_methods
 
@@ -10,12 +12,21 @@ FileNameStateSearch = './data/state_search_message.json'
 dict_search_message = json_methods.read_file_json(FileNameStateSearch)
 
 
+@router_state_search.message(F.text == state_search_keyboards.text_keyboards['cancel_state'],
+                             ~StateFilter(default_state))
+async def cancel_search_state(message: types.Message, state: FSMContext):
+    await message.answer(text=state_search_keyboards.text_keyboards['cancel_state'],
+                         reply_markup=types.ReplyKeyboardRemove())
+    await state.clear()
+
+
 @router_state_search.message(F.text.regexp(r"^(-?\d+)$"), state_machines.VkSearchMachine.NumberChoice)
 async def state_number_choice(message: types.Message, state: FSMContext):
     digits = int(message.text)
     if (digits >= 1) and (digits <= 1000):
         kb_inline = state_search_keyboards.kb_inline_state_search
         await message.answer(dict_search_message['message_number'], reply_markup=kb_inline)
+        await state.update_data(digits=digits)
         await state.set_state(state_machines.VkSearchMachine.SearchModeChoice)
     else:
         await message.answer(dict_search_message['message_error_number'].format(str(digits)))
@@ -31,7 +42,7 @@ async def error_state_number_choice(message: types.Message):
 async def state_choice_mode_search(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer(dict_search_message['message_callback_answer'])
     await callback.answer()
-    await
+    await state.update_data(mode=callback.data)
     await state.set_state(state_machines.VkSearchMachine.LoadFile)
 
 
@@ -41,9 +52,11 @@ async def state_not_choice_mode_search(callback: types.CallbackQuery):
 
 
 @router_state_search.message(state_machines.VkSearchMachine.LoadFile, F.document,
-                             filters_state_load_file.FilterLoadFile())
-async def state_load_file(message: types.Message):
+                             filters_state.FilterLoadFile())
+async def state_load_file(message: types.Message, state: FSMContext):
     await message.answer(dict_search_message['message_load_file'])
+    await state.update_data(document=message.document.file_id)
+    await state.clear()
 
 
 @router_state_search.message(state_machines.VkSearchMachine.LoadFile, F.document)
