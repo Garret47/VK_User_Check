@@ -3,7 +3,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from FsmMachine import state_machines
-from keyboards import state_search_keyboards
+from keyboards import state_settings_keyboards
 from assist_func import json_methods
 
 router_command = Router()
@@ -21,7 +21,7 @@ async def command_help(message: types.Message):
     await message.answer(dict_command['help_message'])
 
 
-@router_command.message(Command('search'), StateFilter(default_state))
-async def command_search(message: types.Message, state: FSMContext):
-    await message.answer(dict_command['search_message'], reply_markup=state_search_keyboards.kb_reply_state_search)
-    await state.set_state(state_machines.VkSearchMachine.NumberChoice)
+@router_command.message(Command('settings'), StateFilter(default_state))
+async def command_settings(message: types.Message, state: FSMContext):
+    await message.answer(dict_command['settings_message'], reply_markup=state_settings_keyboards.kb_reply_state_setting)
+    await state.set_state(state_machines.VkSettingMachine.NumberChoice)

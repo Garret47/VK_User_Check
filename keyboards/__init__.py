@@ -1,1 +1,1 @@
-from . import state_search_keyboards
+from . import state_settings_keyboards

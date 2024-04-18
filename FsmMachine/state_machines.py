@@ -2,7 +2,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 
-class VkSearchMachine(StatesGroup):
+class VkSettingMachine(StatesGroup):
     NumberChoice = State()
-    SearchModeChoice = State()
-    LoadFile = State()
+    SettingModeChoice = State()
+    Communities = State()
+    People = State()
+    All = State()
