@@ -40,7 +40,7 @@ async def state_number_choice(message: types.Message, state: FSMContext):
     if (digits >= 1) and (digits <= 1000):
         kb_inline = state_settings_keyboards.kb_inline_state_mode
         await message.answer(dict_settings_message['message_number'], reply_markup=kb_inline)
-        await state.update_data(digits=digits)
+        await state.update_data(count=digits)
         await state.set_state(state_machines.VkSettingMachine.SettingModeChoice)
     else:
         await message.answer(dict_settings_message['message_error_number'].format(str(digits)))
