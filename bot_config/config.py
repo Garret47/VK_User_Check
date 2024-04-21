@@ -3,7 +3,6 @@ from pydantic import SecretStr
 
 
 class Settings(BaseSettings):
-    ACCESS_TOKEN_VK: SecretStr
     BOT_TOKEN: SecretStr
     PASSWORD_BD: SecretStr
     HOST: str

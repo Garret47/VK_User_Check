@@ -1,8 +1,7 @@
 from aiogram import types
 from aiogram.fsm.context import FSMContext
 from Databases import SingletonBd
-
-table_name = 'bot_settings'
+from data import TABLE_NAME_SETTING, DEFAULT_SETTINGS
 
 
 def str_query(tables_columns: list, settings: dict, table: str, id_bd: int):
@@ -17,12 +16,11 @@ def str_query(tables_columns: list, settings: dict, table: str, id_bd: int):
             quotes = '"'
         key = settings.get(i[0])
         if key is None or key == '':
-            pass
-        else:
-            tmp_columns += f', {i[0]}'
-            tmp_values += f', {quotes}{key}{quotes}'
-            tmp_update += f'{separator}{i[0]}={quotes}{key}{quotes}'
-            separator = ', '
+            key = DEFAULT_SETTINGS[i[0]]
+        tmp_columns += f', {i[0]}'
+        tmp_values += f', {quotes}{key}{quotes}'
+        tmp_update += f'{separator}{i[0]}={quotes}{key}{quotes}'
+        separator = ', '
     return query.format(table, tmp_columns, tmp_values, tmp_update)
 
 
@@ -36,7 +34,7 @@ async def finally_settings(message: types.Message, state: FSMContext, answer: st
     await message.answer(answer, reply_markup=types.ReplyKeyboardRemove())
     settings = await state.get_data()
     bd = SingletonBd()
-    columns = (await bd.describe_table())[table_name]
-    query = str_query(columns, settings, table_name, message.from_user.id)
+    columns = (await bd.describe_table())[TABLE_NAME_SETTING]
+    query = str_query(columns, settings, TABLE_NAME_SETTING, message.from_user.id)
     await bd.insert_bd(query)
     await state.clear()

@@ -15,4 +15,4 @@ class FilterPermittedMessage(BaseFilter):
         if len_message != len(self.permitted_values.keys()) or refactoring_mess == []:
             return False
         else:
-            return {'refactoring_message': ', '.join(refactoring_mess)}
+            return {'refactoring_message': ', '.join(list(set(refactoring_mess)))}

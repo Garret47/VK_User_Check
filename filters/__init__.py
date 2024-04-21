@@ -1,1 +1,1 @@
-from . import filters_state
+from . import filters_state, filters_search
