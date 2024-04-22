@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     USER_BD: SecretStr
     DATABASE: str
     PORT: int
+    ADMINS: list
 
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf8')
 
