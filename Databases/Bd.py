@@ -4,12 +4,12 @@ import asyncio
 import nest_asyncio
 from pydantic import SecretStr
 from aiogram.fsm.context import FSMContext
+from bot_config import config
 
 
 class SingletonBd(object):
     __instance = None
     __mydb = None
-    __cursor = None
     tables = None
 
     def __new__(cls, *args, **kwargs):
@@ -27,23 +27,29 @@ class SingletonBd(object):
                 host=host,
                 password=password.get_secret_value()
             )
-            self.__cursor = await self.__mydb.cursor()
             print('Done')
         except Exception as e:
             print(e)
             raise DatabaseError('not connection')
 
     async def select_bg(self, str_query: str):
-        await self.__cursor.execute(str_query)
-        return await self.__cursor.fetchall()
+        cursor = await self.__mydb.cursor()
+        await cursor.execute(str_query)
+        answer = await cursor.fetchall()
+        await cursor.close()
+        return answer
 
     async def insert_bd(self, str_query: str):
-        await self.__cursor.execute(str_query)
+        cursor = await self.__mydb.cursor()
+        await cursor.execute(str_query)
         await self.__mydb.commit()
+        await cursor.close()
 
     async def describe_table(self):
+        cursor = await self.__mydb.cursor()
         answer = {}
         for i in self.tables:
-            await self.__cursor.execute(f'DESCRIBE {i};')
-            answer[i] = tuple(map(lambda x: x[0:2], await self.__cursor.fetchall()))
+            await cursor.execute(f'DESCRIBE {i};')
+            answer[i] = tuple(map(lambda x: x[0:2], await cursor.fetchall()))
+        await cursor.close()
         return answer

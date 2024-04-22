@@ -1,4 +1,5 @@
 .env
+data/vk_codes.txt
 *__pycache__/
 *.py[cod]
 *$py.class

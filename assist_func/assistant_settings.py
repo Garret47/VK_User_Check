@@ -30,11 +30,11 @@ async def callback_mode_assistant(callback: types.CallbackQuery, state: FSMConte
     await state.update_data(all=flag)
 
 
-async def finally_settings(message: types.Message, state: FSMContext, answer: str):
+async def finally_settings(message: types.Message, state: FSMContext, answer: str, user_id: int):
     await message.answer(answer, reply_markup=types.ReplyKeyboardRemove())
     settings = await state.get_data()
     bd = SingletonBd()
     columns = (await bd.describe_table())[TABLE_NAME_SETTING]
-    query = str_query(columns, settings, TABLE_NAME_SETTING, message.from_user.id)
+    query = str_query(columns, settings, TABLE_NAME_SETTING, user_id)
     await bd.insert_bd(query)
     await state.clear()

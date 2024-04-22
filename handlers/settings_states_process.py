@@ -16,14 +16,15 @@ str_permitted_communities = '\n'.join(map(lambda x: f'{x[0]}: {x[1]}', dict_perm
 str_permitted_people = '\n'.join(map(lambda x: f'{x[0]}: {x[1]}', dict_permitted['people'].items()))
 
 
-async def change_state_on_people(message: types.Message, state: FSMContext, keyboard: types.InlineKeyboardMarkup):
+async def change_state_on_people(message: types.Message, state: FSMContext, keyboard: types.InlineKeyboardMarkup,
+                                 user_id: int):
     flag = (await state.get_data())['all']
     if flag:
         await message.answer(dict_settings_message['message_callback_people'].format(str_permitted_people),
                              reply_markup=keyboard)
         await state.set_state(state_machines.VkSettingMachine.People)
     else:
-        await assistant_settings.finally_settings(message, state, dict_settings_message['finally'])
+        await assistant_settings.finally_settings(message, state, dict_settings_message['finally'], user_id)
 
 
 @router_state_setting.message(F.text == state_settings_keyboards.text_keyboards['cancel_state'],
@@ -83,14 +84,14 @@ async def state_choice_all(callback: types.CallbackQuery, state: FSMContext):
 async def state_communities(message: types.Message, state: FSMContext, refactoring_message: str):
     kb_inline = state_settings_keyboards.kb_inline_state_setting_value
     await state.update_data(communities=refactoring_message)
-    await change_state_on_people(message, state, kb_inline)
+    await change_state_on_people(message, state, kb_inline, message.from_user.id)
 
 
 @router_state_setting.message(state_machines.VkSettingMachine.People, F.text,
                               filters_state.FilterPermittedMessage(dict_permitted['people']))
 async def state_people(message: types.Message, state: FSMContext, refactoring_message: str):
     await state.update_data(people=refactoring_message)
-    await assistant_settings.finally_settings(message, state, dict_settings_message['finally'])
+    await assistant_settings.finally_settings(message, state, dict_settings_message['finally'], message.from_user.id)
 
 
 @router_state_setting.message(StateFilter(state_machines.VkSettingMachine.People,
@@ -103,14 +104,15 @@ async def state_people(message: types.Message):
 async def callback_state_communities(callback: types.CallbackQuery, state: FSMContext):
     kb_inline = state_settings_keyboards.kb_inline_state_setting_value
     await state.update_data(communities='')
-    await change_state_on_people(callback.message, state, kb_inline)
+    await change_state_on_people(callback.message, state, kb_inline, callback.from_user.id)
     await callback.answer()
 
 
 @router_state_setting.callback_query(state_machines.VkSettingMachine.People, F.data == 'default')
 async def callback_state_people(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(people='')
-    await assistant_settings.finally_settings(callback.message, state, dict_settings_message['finally'])
+    await assistant_settings.finally_settings(callback.message, state, dict_settings_message['finally'],
+                                              callback.from_user.id)
     await callback.answer()
 
 

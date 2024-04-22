@@ -41,7 +41,9 @@ async def read_settings_database(user_id):
 async def create_dataframe(settings: dict, response_bytes: bytes):
     try:
         f = io.BytesIO(response_bytes)
-        df = pd.read_excel(f, usecols=['q', 'count'])[:settings['count']]
+        df = pd.read_excel(f, usecols=['q', 'count'])
+        if df.shape[0] > settings['count']:
+            df = df[:settings['count']]
         return df
     except Exception as e:
         print(e)
