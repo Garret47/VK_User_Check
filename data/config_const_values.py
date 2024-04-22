@@ -11,3 +11,4 @@ STR_VK_CODE: str = '''API.{0}({{{1}}})'''
 DEFAULT_VK_PEOPLE: list = ['first_name', 'last_name', 'id']
 DEFAULT_VK_COMMUNITIES: list = ['name', 'screen_name', 'photo_200']
 DEFAULT_VK_TIMEOUT: int = 30
+MAX_LOAD_BYTES_FILE: int = 47185920

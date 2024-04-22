@@ -10,7 +10,6 @@ from data import (STANDARD_URL_VK, COUNT_TOKENS_IN_FILE, COUNT_REQUEST_VK_THE_SA
                   DEFAULT_VK_PEOPLE, DEFAULT_VK_COMMUNITIES, DEFAULT_VK_TIMEOUT)
 
 FileNameToken = './data/vk_codes.txt'
-df_custom = custom_dataframe.SingletonDf()
 
 
 def gen_code(data: str, df: pd.DataFrame, i: int):
@@ -23,7 +22,7 @@ def edit_response(task: asyncio.Task):
     if task.cancelled():
         return
     try:
-        response, names = task.result()
+        response, names, df_custom = task.result()
     except TimeoutError:
         return
     read = 0
@@ -31,7 +30,7 @@ def edit_response(task: asyncio.Task):
         read = df_custom.insert_dataframe(response, names[i], read)
 
 
-async def task_get_resp(code, names, token):
+async def task_get_resp(code, names, token, df_custom):
     async with aiohttp.ClientSession() as session:
         while True:
             try:
@@ -52,7 +51,7 @@ async def task_get_resp(code, names, token):
                     print(text['error'])
                     print(token)
                     return 'error'
-            return text['response'], names
+            return text['response'], names, df_custom
 
 
 def read_token(file):
@@ -71,6 +70,7 @@ def create_field(question: str):
 
 
 def create_dataframe_and_dict_code(settings: dict):
+    df_custom = custom_dataframe.Df()
     arr_people = settings['people'].split(', ') if settings['people'] else []
     arr_communities = settings['communities'].split(', ') if settings['communities'] else []
     if settings['mode'] == 'all':
@@ -86,7 +86,7 @@ def create_dataframe_and_dict_code(settings: dict):
         returned_data = create_returned_data('group', DEFAULT_VK_COMMUNITIES + arr_communities)
     df_custom.create_dataframes(settings['mode'], ['q']+DEFAULT_VK_PEOPLE+arr_people,
                                 ['q']+DEFAULT_VK_COMMUNITIES+arr_communities)
-    return fields, returned_data
+    return fields, returned_data, df_custom
 
 
 def change_code(row: pd.Series, fields: list):
@@ -104,13 +104,13 @@ def change_dataframe(df: pd.DataFrame, fields: list):
     return df
 
 
-def edit_answer():
+def edit_answer(df_custom):
     df_custom.drop_none(['id'], ['name'])
     df_custom.edit_dataframes()
 
 
-async def run_vk_search(df: pd.DataFrame, settings: dict):
-    fields, returned_data = create_dataframe_and_dict_code(settings)
+async def run_vk_search(df: pd.DataFrame, settings: dict, message):
+    fields, returned_data, df_custom = create_dataframe_and_dict_code(settings)
     tasks = []
     file = open(FileNameToken, mode='r')
     count_requests = (df.shape[0] // COUNT_REQUEST_VK_THE_SAME + int((df.shape[0] % COUNT_REQUEST_VK_THE_SAME) != 0))
@@ -128,11 +128,11 @@ async def run_vk_search(df: pd.DataFrame, settings: dict):
             number = (j + sum(arr_tokens_requests[:i])) * COUNT_REQUEST_VK_THE_SAME
             code_vk = gen_code(returned_data, df, number)
             names = df.iloc[number:number+COUNT_REQUEST_VK_THE_SAME]['q'].to_list()
-            task = asyncio.create_task(task_get_resp(code_vk, names, token))
+            task = asyncio.create_task(task_get_resp(code_vk, names, token, df_custom))
             task.add_done_callback(edit_response)
             tasks.append(task)
     await asyncio.gather(*tasks)
     file.close()
-    edit_answer()
+    edit_answer(df_custom)
     return df_custom.dataframes
 

@@ -2,48 +2,43 @@ import pandas as pd
 import numpy as np
 
 
-class SingletonDf:
-    __instance = None
-    dataframes = {}
+class Df:
 
-    def __new__(cls, *args, **kwargs):
-        if cls.__instance is None:
-            cls.__instance = super().__new__(cls)
-        return cls.__instance
+    def __init__(self):
+        self.dataframes = {}
 
-    @classmethod
-    def create_dataframes(cls, mode, columns_p: list, columns_c: list):
-        cls.dataframes['people'] = pd.DataFrame(columns=columns_p)
-        cls.dataframes['communities'] = pd.DataFrame(columns=columns_c)
+    def create_dataframes(self, mode, columns_p: list, columns_c: list):
+        self.dataframes['people'] = pd.DataFrame(columns=columns_p)
+        self.dataframes['communities'] = pd.DataFrame(columns=columns_c)
         if mode == 'people':
-            cls.dataframes.pop('communities')
+            self.dataframes.pop('communities')
         elif mode == 'communities':
-            cls.dataframes.pop('people')
+            self.dataframes.pop('people')
 
-    @classmethod
-    def insert_dataframe(cls, response: list, name: str, j: int):
-        for i in cls.dataframes:
-            data = response[j:j+len(cls.dataframes[i].columns.to_list())-1]
-            tmp = pd.DataFrame(np.column_stack(data), columns=cls.dataframes[i].columns.to_list()[1:], dtype=str)
-            tmp['q'] = name
-            cls.dataframes[i] = pd.concat([cls.dataframes[i], tmp], ignore_index=True)
-            j += len(cls.dataframes[i].columns.to_list()) - 1
+    def insert_dataframe(self, response: list, name: str, j: int):
+        for i in self.dataframes:
+            try:
+                data = response[j:j+len(self.dataframes[i].columns.to_list())-1]
+                tmp = pd.DataFrame(np.column_stack(data), columns=self.dataframes[i].columns.to_list()[1:], dtype=str)
+                tmp['q'] = name
+                self.dataframes[i] = pd.concat([self.dataframes[i], tmp], ignore_index=True)
+                j += len(self.dataframes[i].columns.to_list()) - 1
+            except:
+                print(1)
         return j
 
-    @classmethod
-    def drop_none(cls, subset_p: list, subset_c: list):
-        for i in cls.dataframes:
+    def drop_none(self, subset_p: list, subset_c: list):
+        for i in self.dataframes:
             if i == 'people':
-                cls.dataframes[i].dropna(subset=subset_p)
+                self.dataframes[i] = self.dataframes[i].dropna(subset=subset_p)
             else:
-                cls.dataframes[i].dropna(subset=subset_c)
+                self.dataframes[i] = self.dataframes[i].dropna(subset=subset_c)
 
-    @classmethod
-    def edit_dataframes(cls):
-        for i in cls.dataframes:
+    def edit_dataframes(self):
+        for i in self.dataframes:
             if i == 'people':
-                cls.dataframes[i]['name'] = (cls.dataframes[i].pop('first_name') + ' ' +
-                                             cls.dataframes[i].pop('last_name'))
-                cls.dataframes[i]['id'] = 'https://vk.com/id' + cls.dataframes[i]['id']
+                self.dataframes[i]['name'] = (self.dataframes[i].pop('first_name') + ' ' +
+                                             self.dataframes[i].pop('last_name'))
+                self.dataframes[i]['id'] = 'https://vk.com/id' + self.dataframes[i]['id']
             else:
-                cls.dataframes[i]['screen_name'] = 'https://vk.com/' + cls.dataframes[i]['screen_name']
+                self.dataframes[i]['screen_name'] = 'https://vk.com/' + self.dataframes[i]['screen_name']
