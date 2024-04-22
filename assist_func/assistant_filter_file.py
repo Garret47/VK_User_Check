@@ -8,9 +8,12 @@ from Databases import SingletonBd
 
 
 async def create_url(message: types.Message):
-    path = await message.bot.get_file(message.document.file_id)
-    url = STANDARD_URL_TELEGRAM + config.BOT_TOKEN.get_secret_value() + '/' + path.file_path
-    return url
+    try:
+        path = await message.bot.get_file(message.document.file_id)
+        url = STANDARD_URL_TELEGRAM + config.BOT_TOKEN.get_secret_value() + '/' + path.file_path
+        return url
+    except TimeoutError:
+        return
 
 
 async def request_telegram_file(url: str, file_size: int):

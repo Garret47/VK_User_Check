@@ -16,6 +16,8 @@ class FilterFileToDataframe(BaseFilter):
     async def __call__(self, message: types.Message, *args, **kwargs):
         async with ChatActionSender.typing(bot=message.bot, chat_id=message.chat.id):
             url = await assistant_filter_file.create_url(message)
+            if url is None:
+                return False
             response_bytes = await assistant_filter_file.request_telegram_file(url, message.document.file_size)
             if response_bytes is None:
                 return False
