@@ -17,14 +17,11 @@ class Df:
 
     def insert_dataframe(self, response: list, name: str, j: int):
         for i in self.dataframes:
-            try:
-                data = response[j:j+len(self.dataframes[i].columns.to_list())-1]
-                tmp = pd.DataFrame(np.column_stack(data), columns=self.dataframes[i].columns.to_list()[1:], dtype=str)
-                tmp['q'] = name
-                self.dataframes[i] = pd.concat([self.dataframes[i], tmp], ignore_index=True)
-                j += len(self.dataframes[i].columns.to_list()) - 1
-            except:
-                print(1)
+            data = response[j:j+len(self.dataframes[i].columns.to_list())-1]
+            tmp = pd.DataFrame(np.column_stack(data), columns=self.dataframes[i].columns.to_list()[1:], dtype=str)
+            tmp['q'] = name
+            self.dataframes[i] = pd.concat([self.dataframes[i], tmp], ignore_index=True)
+            j += len(self.dataframes[i].columns.to_list()) - 1
         return j
 
     def drop_none(self, subset_p: list, subset_c: list):
